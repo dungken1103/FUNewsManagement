@@ -1,0 +1,130 @@
+﻿@model IEnumerable<DataAccessLayer.Models.SystemAccount>
+
+@{
+    ViewData["Title"] = "Tài khoản";
+}
+
+<h2>Tài khoản</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="q" class="form-control" placeholder="Tìm tên hoặc email" />
+    </div>
+    <div class="col-auto">
+        <select name="role" class="form-select">
+            <option value="">Tất cả vai trò</option>
+            <option value="0">Admin</option>
+            <option value="1">Staff</option>
+            <option value="2">Lecturer</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary">Tìm</button>
+    </div>
+</form>
+
+<p>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+        + Tạo tài khoản mới
+    </button>
+</p>
+@await Html.PartialAsync("_CreateModal", new DataAccessLayer.Models.SystemAccount())
+
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var acc in Model)
+        {
+            <tr>
+                <td>@acc.AccountId</td>
+                <td>@acc.AccountName</td>
+                <td>@acc.AccountEmail</td>
+                <td>@acc.AccountRole</td>
+                <td>
+                    @* Admins can edit inline via modal *@
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <button class="btn btn-sm btn-primary edit-modal-btn" data-id="@acc.AccountId">Sửa</button>
+                    }
+                    else if (User.IsInRole("Staff") && acc.AccountId.ToString() == (User.FindFirst("UserId")?.Value ?? "0"))
+                    {
+                        <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@acc.AccountId">Sửa</a>
+                    }
+                    <button type="button" class="btn btn-warning ms-2" data-bs-toggle="modal" data-bs-target="#changePassword-@acc.AccountId">
+                        Đổi mật khẩu
+                    </button>
+
+                    @await Html.PartialAsync("_ChangePassword", acc)
+                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@acc.AccountId">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal placeholder for admin inline edit -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="editModalContent"></div>
+    </div>
+</div>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast align-items-center text-bg-success border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @TempData["Success"]
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="toast align-items-center text-bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @TempData["Error"]
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', async function (e) {
+            if (e.target && e.target.classList.contains('edit-modal-btn')) {
+                var id = e.target.getAttribute('data-id');
+                var resp = await fetch('/Account/EditModal?id=' + encodeURIComponent(id));
+                if (resp.ok) {
+                    var html = await resp.text();
+                    document.getElementById('editModalContent').innerHTML = html;
+                    var modal = new bootstrap.Modal(document.getElementById('editModal'));
+                    modal.show();
+                } else {
+                    alert('Không thể tải form chỉnh sửa');
+                }
+            }
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            toastElList.forEach(function (toastEl) {
+                var toast = new bootstrap.Toast(toastEl, { delay: 5000 })
+                toast.show()
+            })
+        });
+    </script>
+}

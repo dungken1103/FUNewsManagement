@@ -1,0 +1,17 @@
+@model DataAccessLayer.Models.Tag
+@{
+    ViewData["Title"] = "Tag Details";
+}
+<h2>@Model.TagName</h2>
+<p>@Model.Note</p>
+<h3>Articles using this tag</h3>
+@if(ViewBag.Articles != null)
+{
+    <ul>
+    @foreach(var a in (IEnumerable<DataAccessLayer.Models.NewsArticle>)ViewBag.Articles)
+    {
+        <li><a asp-controller="News" asp-action="Details" asp-route-id="@a.NewsArticleId">@a.NewsTitle</a></li>
+    }
+    </ul>
+}
+<a asp-action="Index" class="btn btn-secondary">Back</a>

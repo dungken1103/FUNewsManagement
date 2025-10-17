@@ -1,0 +1,70 @@
+@model DataAccessLayer.Models.NewsArticle
+@{
+    ViewData["Title"] = Model.NewsTitle;
+}
+
+<div class="container py-4">
+
+    <!-- News Card Style -->
+    <div class="card shadow-sm mb-4">
+        <!-- Random Image -->
+        <img src="https://picsum.photos/600/250?random=@Model.NewsArticleId@DateTime.Now.Ticks" class="card-img-top" alt="News Image">
+
+        <div class="card-body">
+            <!-- Title -->
+            <h2 class="card-title display-6 mb-3">@Model.NewsTitle</h2>
+
+            <!-- Metadata (Category, Author, Created) like Home Index -->
+            <p class="text-muted mb-3">
+                <strong>Category:</strong> @Model.Category?.CategoryName |
+                <strong>Author:</strong> @Model.CreatedBy?.AccountName |
+                <strong>Created:</strong> @(Model.CreatedDate.HasValue ? Model.CreatedDate.Value.ToString("dd-MM-yyyy") : "")
+            </p>
+
+            <!-- News Content -->
+            <div class="mb-4">
+                @Html.Raw(Model.NewsContent)
+            </div>
+
+            <!-- Tags as pills -->
+            @if (Model.Tags != null && Model.Tags.Any())
+            {
+                <div class="mb-3">
+                    @foreach (var t in Model.Tags)
+                    {
+                        <a asp-controller="Tag" asp-action="Details" asp-route-id="@t.TagId" class="badge rounded-pill bg-warning me-1 mb-1">@t.TagName</a>
+                    }
+                </div>
+            }
+
+            <!-- Related Articles -->
+            @if (ViewBag.Related != null)
+            {
+                <div class="mb-3">
+                    <h5>Related Articles</h5>
+                    <div class="row row-cols-1 row-cols-md-3 g-3">
+                        @foreach (var r in (IEnumerable<DataAccessLayer.Models.NewsArticle>)ViewBag.Related)
+                        {
+                            <div class="col">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title">@r.NewsTitle</h6>
+                                        <p class="text-muted mb-1">
+                                            <strong>Category:</strong> @r.Category?.CategoryName |
+                                            <strong>Author:</strong> @r.CreatedBy?.AccountName
+                                        </p>
+                                        <a asp-controller="News" asp-action="Details" asp-route-id="@r.NewsArticleId" class="btn btn-sm btn-outline-primary">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Back Button -->
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary mt-3">Back</a>
+        </div>
+    </div>
+
+</div>

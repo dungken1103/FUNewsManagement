@@ -1,0 +1,38 @@
+@model DataAccessLayer.Models.SystemAccount
+
+<div class="modal-header">
+    <h5 class="modal-title">Chỉnh sửa tài khoản</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="AccountId" />
+    <div class="modal-body">
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input asp-for="AccountName" class="form-control" />
+            <span asp-validation-for="AccountName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input asp-for="AccountEmail" class="form-control" />
+            <span asp-validation-for="AccountEmail" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Role</label>
+            <select asp-for="AccountRole" class="form-select">
+                <option value="0">Admin</option>
+                <option value="1">Staff</option>
+                <option value="2">Lecturer</option>
+            </select>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

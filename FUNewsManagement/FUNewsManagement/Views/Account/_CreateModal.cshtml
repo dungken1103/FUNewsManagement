@@ -1,0 +1,84 @@
+﻿@model DataAccessLayer.Models.SystemAccount
+
+<div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="createModalContent">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo tài khoản mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createForm" asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên</label>
+                        <input asp-for="AccountName" class="form-control" />
+                        <span asp-validation-for="AccountName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input asp-for="AccountEmail" class="form-control" />
+                        <span asp-validation-for="AccountEmail" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <input asp-for="AccountPassword" class="form-control" type="password" />
+                        <span asp-validation-for="AccountPassword" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vai trò</label>
+                        <select asp-for="AccountRole" class="form-select">
+                            <option value="0">Admin</option>
+                            <option value="1">Staff</option>
+                            <option value="2">Lecturer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Tạo</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('createForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var form = e.target;
+            var formData = new FormData(form);
+
+            var response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                try {
+                    var data = await response.json();
+                    if (data.success) {
+                        // thông báo thành công
+                        alert(data.message);
+                        // đóng modal
+                        var modalEl = document.getElementById('createModal');
+                        var modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+                        // reload Index
+                        window.location.href = '@Url.Action("Index", "Account")';
+                    }
+                } catch {
+                    // nếu trả về HTML (có lỗi validation)
+                    var html = await response.text();
+                    document.getElementById('createModalContent').innerHTML = html;
+
+                    // show alert nếu email trùng
+                    if (html.includes("Email đã tồn tại")) {
+                        alert("Email đã tồn tại, vui lòng nhập email khác!");
+                    }
+                }
+            }
+        });
+    </script>
+}

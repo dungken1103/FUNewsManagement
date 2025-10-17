@@ -1,0 +1,225 @@
+﻿@model IEnumerable<DataAccessLayer.Models.NewsArticle>
+@{
+    ViewData["Title"] = "News";
+}
+
+<h2>News</h2>
+
+<!-- Search Form -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3"><input type="text" name="q" class="form-control" placeholder="Search title..." /></div>
+    <div class="col-md-3">
+        <select name="categoryId" class="form-select">
+            <option value="">All categories</option>
+            @foreach (var c in (IEnumerable<DataAccessLayer.Models.Category>)ViewBag.Categories)
+            {
+                <option value="@c.CategoryId">@c.CategoryName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2"><input type="date" name="from" class="form-control" /></div>
+    <div class="col-md-2"><input type="date" name="to" class="form-control" /></div>
+    <div class="col-md-2">
+        <button class="btn btn-primary">Search</button>
+        <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#createModal">Create</button>
+    </div>
+</form>
+
+<!-- Table -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Author</th>
+            <th>Created</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var n in Model)
+        {
+            <tr>
+                <td>@n.NewsTitle</td>
+                <td>@n.Category?.CategoryName</td>
+                <td>@n.CreatedBy?.AccountName</td>
+                <td>@(n.CreatedDate.HasValue ? n.CreatedDate.Value.ToString("dd-MM-yyyy") : "")</td>
+                <td>@(n.NewsStatus == true ? "Active" : "Inactive")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@n.NewsArticleId" class="btn btn-sm btn-info">View</a>
+                    @if (User?.IsInRole("Staff") == true)
+                    {
+                        <button type="button"
+                                class="btn btn-sm btn-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editModal"
+                                data-id="@n.NewsArticleId"
+                                data-title="@n.NewsTitle"
+                                data-headline="@n.Headline"
+                                data-category="@n.CategoryId"
+                                data-content="@n.NewsContent"
+                                data-status="@n.NewsStatus">
+                            Edit
+                        </button>
+                        <a asp-action="Duplicate" asp-route-id="@n.NewsArticleId" class="btn btn-sm btn-warning">Duplicate</a>
+                        <a asp-action="Delete" asp-route-id="@n.NewsArticleId" class="btn btn-sm btn-danger" onclick="return confirm('Delete this article?');">Delete</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- ===================== CREATE MODAL ===================== -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createModalLabel">Create News</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input name="NewsTitle" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Headline</label>
+                        <input name="Headline" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="CategoryId" class="form-select">
+                            <option value="">-- Select --</option>
+                            @foreach (var c in (IEnumerable<DataAccessLayer.Models.Category>)ViewBag.Categories)
+                            {
+                                <option value="@c.CategoryId">@c.CategoryName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tags</label>
+                        <div class="form-check">
+                            @foreach (var t in (IEnumerable<DataAccessLayer.Models.Tag>)ViewBag.Tags)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="selectedTags"
+                                           value="@t.TagId"
+                                           id="create_tag_@t.TagId" />
+                                    <label class="form-check-label" for="create_tag_@t.TagId">@t.TagName</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        <textarea name="NewsContent" class="form-control" rows="6"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== EDIT MODAL ===================== -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form asp-action="Edit" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit News</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+                    <input type="hidden" name="NewsArticleId" id="edit_id" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input name="NewsTitle" id="edit_title" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Headline</label>
+                        <input name="Headline" id="edit_headline" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="CategoryId" id="edit_category" class="form-select">
+                            <option value="">-- Select --</option>
+                            @foreach (var c in (IEnumerable<DataAccessLayer.Models.Category>)ViewBag.Categories)
+                            {
+                                <option value="@c.CategoryId">@c.CategoryName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tags</label>
+                        <div id="edit_tags">
+                            @foreach (var t in (IEnumerable<DataAccessLayer.Models.Tag>)ViewBag.Tags)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="selectedTags" value="@t.TagId" id="edit_tag_@t.TagId" />
+                                    <label class="form-check-label" for="edit_tag_@t.TagId">@t.TagName</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        <textarea name="NewsContent" id="edit_content" class="form-control" rows="6"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="NewsStatus" value="true" id="edit_status">
+                            <label class="form-check-label" for="edit_status">Active</label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Gán dữ liệu vào Edit Modal
+        const editModal = document.getElementById('editModal');
+        editModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            document.getElementById('edit_id').value = button.getAttribute('data-id');
+            document.getElementById('edit_title').value = button.getAttribute('data-title');
+            document.getElementById('edit_headline').value = button.getAttribute('data-headline');
+            document.getElementById('edit_category').value = button.getAttribute('data-category');
+            document.getElementById('edit_content').value = button.getAttribute('data-content');
+            const status = button.getAttribute('data-status');
+    document.getElementById('edit_status').checked = (status === "True" || status === "true" || status === "1");
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,64 @@
+﻿@model IEnumerable<DataAccessLayer.Models.NewsArticle>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center mb-4">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<!-- Search & Filter -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3"><input type="text" name="q" class="form-control" placeholder="Search title..." /></div>
+    <div class="col-md-3">
+        <select name="categoryId" class="form-select">
+            <option value="">All categories</option>
+            @foreach (var c in (IEnumerable<DataAccessLayer.Models.Category>)ViewBag.Categories)
+            {
+                <option value="@c.CategoryId">@c.CategoryName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2"><input type="date" name="from" class="form-control" /></div>
+    <div class="col-md-2"><input type="date" name="to" class="form-control" /></div>
+    <div class="col-md-2 d-flex">
+        <button class="btn btn-primary me-2">Search</button>
+        <a asp-action="Create" class="btn btn-success">Create</a>
+    </div>
+</form>
+
+<!-- News Cards -->
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var n in Model)
+    {
+        @if (n.NewsStatus == true)
+        {
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <!-- Random Image -->
+                <img src="https://picsum.photos/300/150?random=@n.NewsArticleId@DateTime.Now.Ticks" class="card-img-top" alt="News Image">
+
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">@n.NewsTitle</h5>
+                    <p class="mb-1"><strong>Category:</strong> @n.Category?.CategoryName</p>
+                    <p class="mb-1"><strong>Author:</strong> @n.CreatedBy?.AccountName</p>
+                    <p class="mb-1"><strong>Created:</strong> @(n.CreatedDate.HasValue ? n.CreatedDate.Value.ToString("dd-MM-yyyy") : "")</p>
+                    <div class="mb-2">
+                        @if (n.Tags != null && n.Tags.Any())
+                        {
+                            @foreach (var tag in n.Tags)
+                            {
+                                <span class="badge rounded-pill bg-warning me-1">@tag.TagName</span>
+                            }
+                        }
+                    </div>
+
+                    <div class="mt-auto d-flex flex-wrap gap-1">
+                        <a asp-controller="News" asp-action="Details" asp-route-id="@n.NewsArticleId" class="btn btn-sm btn-info">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>}
+    }
+</div>

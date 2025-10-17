@@ -1,0 +1,31 @@
+@model DataAccessLayer.Models.Category
+
+@{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+<form id="categoryForm" asp-action="@(Model?.CategoryId > 0 ? "Edit" : "Create")" method="post">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.CategoryId > 0)
+    {
+        <input type="hidden" asp-for="CategoryId" />
+    }
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input asp-for="CategoryName" class="form-control" />
+        <span asp-validation-for="CategoryName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea asp-for="CategoryDesciption" class="form-control"></textarea>
+        <span asp-validation-for="CategoryDesciption" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Active</label>
+        <select asp-for="IsActive" class="form-select">
+            <option value="false">InActive</option>
+            <option value="true">Active</option>
+        </select>
+    </div>
+    <div class="text-end">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+</form>

@@ -1,0 +1,128 @@
+﻿@model IEnumerable<DataAccessLayer.Models.Tag>
+@{
+    ViewData["Title"] = "Tags";
+}
+
+<h2>Tags</h2>
+
+<!-- Search + Create -->
+<form method="get" class="form-inline mb-2">
+    <input type="text" name="q" class="form-control" placeholder="Search tags..." />
+    <button class="btn btn-primary ms-2">Search</button>
+    <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#createModal">
+        Create
+    </button>
+</form>
+
+<!-- Table -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>TagId</th>
+            <th>TagName</th>
+            <th>Note</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.TagId</td>
+                <td>@t.TagName</td>
+                <td>@t.Note</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editModal"
+                            data-id="@t.TagId"
+                            data-name="@t.TagName"
+                            data-note="@t.Note">
+                        Edit
+                    </button>
+                    @{
+                        var used = (ViewBag.UsedTagIds as System.Collections.Generic.HashSet<int>) ?? new System.Collections.Generic.HashSet<int>();
+                        if (!used.Contains(t.TagId))
+                        {
+                            <a asp-action="Delete" asp-route-id="@t.TagId" class="btn btn-sm btn-danger" onclick="return confirm('Delete this tag?');">Delete</a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-secondary" disabled>In Use</button>
+                        }
+                    }
+                    <a asp-action="Details" asp-route-id="@t.TagId" class="btn btn-sm btn-secondary">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- ======================= CREATE MODAL ======================= -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">Create Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Tag Name</label>
+                        <input name="TagName" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <textarea name="Note" class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================= EDIT MODAL ======================= -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" name="TagId" id="editTagId" />
+                    <div class="mb-3">
+                        <label class="form-label">Tag Name</label>
+                        <input name="TagName" id="editTagName" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <textarea name="Note" id="editNote" class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const editModal = document.getElementById('editModal');
+        editModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const note = button.getAttribute('data-note');
+
+            document.getElementById('editTagId').value = id;
+            document.getElementById('editTagName').value = name;
+            document.getElementById('editNote').value = note;
+        });
+    </script>
+}

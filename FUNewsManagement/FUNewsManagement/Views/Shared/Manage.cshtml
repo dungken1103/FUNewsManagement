@@ -1,0 +1,73 @@
+@model DataAccessLayer.Models.SystemAccount
+
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+}
+
+<h2>Quản lý tài khoản</h2>
+
+<form asp-action="Manage" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="@Model.AccountId" />
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input asp-for="AccountName" class="form-control" />
+        <span asp-validation-for="AccountName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input asp-for="AccountEmail" class="form-control" />
+        <span asp-validation-for="AccountEmail" class="text-danger"></span>
+    </div>
+    <!-- Role is not editable here for staff -->
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary ms-2">Quay lại</a>
+    <button type="button" class="btn btn-warning ms-2" data-bs-toggle="modal" data-bs-target="#changePassword-@Model.AccountId">
+        Đổi mật khẩu
+    </button>
+</form>
+<!-- Toast container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast align-items-center text-bg-success border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @TempData["Success"]
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="toast align-items-center text-bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @TempData["Error"]
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+</div>
+
+
+   
+
+
+@await Html.PartialAsync("_ChangePassword", Model)
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            toastElList.forEach(function (toastEl) {
+                var toast = new bootstrap.Toast(toastEl, { delay: 5000 })
+                toast.show()
+            })
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

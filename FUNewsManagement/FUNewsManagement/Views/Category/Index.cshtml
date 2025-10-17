@@ -1,0 +1,117 @@
+@model IEnumerable<DataAccessLayer.Models.Category>
+
+@{
+    ViewData["Title"] = "Danh mục";
+}
+
+<h2>Danh mục</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="q" class="form-control" placeholder="Tìm tên hoặc mô tả" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary">Tìm</button>
+    </div>
+</form>
+
+<p>
+    <button id="btnCreate" class="btn btn-success">Tạo mới</button>
+</p>
+@Html.AntiForgeryToken()
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>IsActive</th>
+            <th>Articles</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.CategoryId</td>
+                <td>@c.CategoryName</td>
+                <td>@c.CategoryDesciption</td>
+                <td>@(c.IsActive == true ? "Yes" : "No")</td>
+                <td>
+                    @{
+                        var byCat = ViewBag.ArticlesByCategory as System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<DataAccessLayer.Models.NewsArticle>>;
+                        int count = 0;
+                        if (byCat != null && byCat.ContainsKey(c.CategoryId))
+                        {
+                            count = byCat[c.CategoryId].Count;
+                        }
+                        else if (c.NewsArticles != null)
+                        {
+                            count = c.NewsArticles.Count;
+                        }
+                        <div>@count</div>
+                    }
+                </td>
+                <td>
+                    
+                    <button class="btn btn-sm btn-primary btn-edit" data-id="@c.CategoryId">Sửa</button>
+                    @if (count == 0)
+                    {
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="@c.CategoryId">Xóa</button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="categoryModalBody">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+                const modalEl = document.getElementById('categoryModal');
+                const bsModal = new bootstrap.Modal(modalEl);
+
+                document.getElementById('btnCreate').addEventListener('click', async () => {
+                    const res = await fetch('@Url.Action("CreateModal")');
+                        const html = await res.text();
+                        document.getElementById('categoryModalBody').innerHTML = html;
+                        bsModal.show();
+                });
+
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                        btn.addEventListener('click', async e => {
+                                const id = e.target.dataset.id;
+                                const res = await fetch('@Url.Action("EditModal")' + '/' + id);
+                                const html = await res.text();
+                                document.getElementById('categoryModalBody').innerHTML = html;
+                                bsModal.show();
+                        });
+                });
+
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                        btn.addEventListener('click', async e => {
+                                const id = e.target.dataset.id;
+                                if (!confirm('Bạn có chắc muốn xóa?')) return;
+                                const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                                const headers = tokenEl ? { 'RequestVerificationToken': tokenEl.value } : {};
+                                const res = await fetch('@Url.Action("Delete")' + '/' + id, { method: 'POST', headers });
+                                if (res.ok) location.reload();
+                        });
+                });
+        </script>
+}
