@@ -62,7 +62,6 @@ Lưu ý: Các tài khoản Staff / Lecturer không được liệt kê trong c�
   - AccountName: Lecturer User
   - Role: Lecturer
 
-Nếu bạn muốn, mình có thể thêm script SQL mẫu để chèn 3 tài khoản (Admin/Staff/Lecturer) vào DB.
 
 ## Kiểm thử xóa bài viết / thẻ
 - Đăng nhập với tài khoản Admin.
@@ -81,7 +80,6 @@ info: Microsoft.Hosting.Lifetime[0]
       Application started. Press Ctrl+C to shut down.
 ```
 
-Bạn có thể chụp màn hình trang chủ, trang quản trị bài viết/tag và thêm vào thư mục `docs/screenshots` nếu muốn.
 
 ## Thực hành nhanh (PowerShell)
 - Build và run:
